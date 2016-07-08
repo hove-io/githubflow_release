@@ -1,2 +1,0 @@
-clingon==0.1.4
-GitPython==2.0.6
