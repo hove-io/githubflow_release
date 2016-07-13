@@ -36,39 +36,6 @@ class PullRequest(object):
         return self._labels
 
 
-def write_debian_changelog(write_lines, project_path):
-    changelog_path = "debian/changelog"
-    changelog_filename = os.path.join(project_path, changelog_path)
-    f_changelog = None
-    if os.path.exists(changelog_filename):
-        try:
-            f_changelog = codecs.open(changelog_filename, 'r', 'utf-8')
-        except IOError:
-            logging.error("Unable to open debian/changelog")
-            exit(1)
-    else:
-        # no previous changelog
-        os.makedirs(os.path.dirname(changelog_filename), exist_ok=True)
-
-    back_filename = changelog_filename + "~"
-    f_changelogback = codecs.open(back_filename, "w", "utf-8")
-
-    for line in write_lines:
-        f_changelogback.write(line)
-
-    for line in f_changelog or []:
-        f_changelogback.write(line)
-
-    if f_changelog is not None:
-        f_changelog.close()
-    f_changelogback.close()
-    _, _ = subprocess.Popen(["vim", back_filename, "--nofork"],
-                            stderr=subprocess.PIPE).communicate()
-
-    copyfile(back_filename, changelog_filename)
-    return changelog_filename
-
-
 class ReleaseManager(object):
     def __init__(self, path, release_type, remote_name, github_repo, github_user, github_token, base_branch):
         self.generate_debian_changelog = True
@@ -282,25 +249,15 @@ class ReleaseManager(object):
     def _generate_debian_changelog(self, pullrequests, version):
         logging.info('generating debian changelog')
 
-        write_lines = [
-            u'{project} ({version}) unstable; urgency=low\n'.format(project='', version=version),
-            u'\n',
-        ]
+        changelog_filename = os.path.join(self.project_path, "debian/changelog")
+
         for pr in pullrequests:
-            write_lines.append(u'  * {title}  <{url}>\n'.format(title=pr.title, url=pr.url))
+            changelog = '{title}  <{url}>'.format(title=pr.title, url=pr.url)
+            dch = 'dch --newversion "{v}" "{text}"'.format(v=version, text=changelog)
+            logging.debug('running : ' + dch)
+            os.system('cd {project} && {cmd}; cd -'.format(project=self.project_path, cmd=dch))
 
-        author_name = self.git.config('user.name')
-        author_mail = self.git.config('user.email')
-        write_lines.extend([
-            u'\n',
-            u' -- {name} <{mail}>  {now} +0100\n'
-                .format(name=author_name, mail=author_mail,
-                        now=datetime.now().strftime("%a, %d %b %Y %H:%m:%S")),
-            u'\n',
-        ])
-
-        changelog = write_debian_changelog(write_lines, self.project_path)
-        self.files_to_commit.append(changelog)
+        self.files_to_commit.append(changelog_filename)
 
 
 def init_log():
