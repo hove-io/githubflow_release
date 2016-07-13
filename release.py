@@ -79,7 +79,6 @@ class ReleaseManager(object):
         self.remote_name = remote_name
         self.base_branch = base_branch
         if github_user and github_token:
-            # TODO auth
             self.github_auth = requests.auth.HTTPBasicAuth(github_user, github_token)
         else:
             self.github_auth = None
@@ -89,6 +88,7 @@ class ReleaseManager(object):
         self.files_to_commit = []  # if some files are created and need to be commit, they are stored here
 
         """ Tag format configuration """
+        # TODO a jinja template would be better
         self.tag_header_format = 'Version {version}\n\n'  # can be formated with {version}
         self.tag_pr_line_format = ' * {pr.title}  <{pr.url}>\n'  # can be formated with {pr}
         self.tag_name_format = 'v{version}'  # can be formated with {version}
@@ -186,7 +186,6 @@ class ReleaseManager(object):
         return lines
 
     def _generate_changelog(self, version):
-
         if self.release_type != "hotfix":
             pullrequests = self._get_merged_pullrequest()
         else:
@@ -205,16 +204,12 @@ class ReleaseManager(object):
 
         return pullrequests
 
-    def checkout_parent_branch(self):
+    def get_parent_branch(self):
+        """ get the branch we want to start working on """
         if self.release_type in ["major", "minor"]:
-            parent = self.base_branch
+            return self.base_branch
         else:
-            parent = RELEASE_BRANCH
-
-        self.git.checkout(parent)
-        self.git.submodule('update')
-
-        logging.debug("current branch {}".format(self.repo.active_branch))
+            return RELEASE_BRANCH
 
     def _make_git_release(self, version, prs):
         """
@@ -224,11 +219,13 @@ class ReleaseManager(object):
         """
         tmp_name = "release_{version}_{rand}".format(version=version, rand=uuid.uuid4())
 
-        self.checkout_parent_branch()
+        parent_branch = self.get_parent_branch()
 
         #we then create a new temporary branch
         logging.debug("creating temporary release branch {}".format(tmp_name))
-        self.git.checkout(b=tmp_name)
+        tmp_branch = self.repo.create_head(tmp_name, '{remote}/{parent}'.format(remote=self.remote_name,
+                                                                                parent=parent_branch))
+
         logging.debug("current branch {}".format(self.repo.active_branch))
 
         if self.generate_debian_changelog:
@@ -239,7 +236,7 @@ class ReleaseManager(object):
 
         self.git.commit(m="Version {}".format(version))
 
-        return tmp_name
+        return tmp_branch
 
     def tag(self, version, pullrequests):
         """ tag the git release branch with the version and the changelog """
@@ -253,13 +250,12 @@ class ReleaseManager(object):
         logging.info("tag: {}".format(tag_message))
 
         tag_name = self.tag_name_format.format(version=version)
-        self.repo.create_tag(tag_name, message=tag_message)
+        self.repo.create_tag(tag_name, ref=RELEASE_BRANCH, message=tag_message)
 
     def _publish(self, version, tmp_branch, pullrequests):
-
+        #merge with the release branch
         self.git.checkout(RELEASE_BRANCH)
         self.git.submodule('update')
-        #merge with the release branch
         self.git.merge(tmp_branch, RELEASE_BRANCH, '--no-ff')
 
         logging.debug("current branch {}".format(self.repo.active_branch))
@@ -267,14 +263,14 @@ class ReleaseManager(object):
         self.tag(version, pullrequests)
 
         #and we merge back the release branch to dev (at least for the tag in release)
-        self.git.merge(RELEASE_BRANCH, self.base_branch, '--no-ff')
+        self.git.merge(RELEASE_BRANCH, self.base_branch)
 
-        logging.info("publishing the release")
+        # we can remove the temporary branch
+        logging.info('deleting temporary branch {}'.format(tmp_branch))
+        self.repo.delete_head(tmp_branch)
 
-        logging.info("Check the release, you will probably want to merge release in dev:")
-        logging.info("  git checkout {}; git submodule update".format(self.base_branch))
-        logging.info("  git merge {}".format(RELEASE_BRANCH))
-        logging.info("And when you're happy do:")
+        logging.info("============================================")
+        logging.info("Check the release, and when you're happy do:")
         logging.info("  git push {} {} {} --tags".format(self.remote_name, self.base_branch, RELEASE_BRANCH))
         #TODO: when we'll be confident, we will do that automaticaly
 
