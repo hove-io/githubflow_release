@@ -265,6 +265,19 @@ def init_log():
     logging.basicConfig(level=logging.DEBUG)
 
 
+def _read_config_file(file_path):
+    print('file path = {}'.format(file_path))
+    import yaml
+    if not os.path.isfile(file_path):
+        return {}
+
+    stream = file(file_path, 'r')
+    f = yaml.load(stream)
+    print('parsed file = {}'.format(f))
+
+    return f
+
+
 @clingon.clize
 def release(path='.',
             release_type='minor',
@@ -274,7 +287,12 @@ def release(path='.',
             github_token='',
             base_branch='master'):
     init_log()
-    manager = ReleaseManager(path, release_type, remote_name, github_repo, github_user, github_token,
-                             base_branch)
+
+    # we override the params if hey were given in a configuration file
+    l = locals()
+    conf = _read_config_file('release.yml')
+    l.update(conf)
+
+    manager = ReleaseManager(**l)
     manager.release()
 
