@@ -37,8 +37,10 @@ class PullRequest(object):
 
 
 class ReleaseManager(object):
-    def __init__(self, path, release_type, remote_name, github_repo, github_user, github_token, base_branch):
-        self.generate_debian_changelog = True
+    def __init__(self, path, release_type, remote_name, github_repo, github_user, github_token,
+                 base_branch, generate_debian_changelog, excluded_pr_tag):
+        self.generate_debian_changelog = generate_debian_changelog
+        self.excluded_pr_tag = excluded_pr_tag
         self.release_type = release_type
         self.project_path = path
         self.repo = git.Repo(path)
@@ -66,7 +68,7 @@ class ReleaseManager(object):
         self._update_repository()
         version = self._get_new_version_number()
         logging.debug("new tag is {}".format(version))
-        pullrequests = self._generate_changelog(version)
+        pullrequests = self._generate_changelog()
         tmp_branch = self._make_git_release(version, pullrequests)
         self._publish(version, tmp_branch, pullrequests)
 
@@ -145,14 +147,14 @@ class ReleaseManager(object):
                 else:
                     # doing the label search as late as possible to save api calls
                     labels = pr.fetch_labels(self.github_auth)
-                    has_excluded_label = any(l in ("hotfix", "not_in_changelog") for l in labels)
+                    has_excluded_label = any(l in self.excluded_pr_tag for l in labels)
 
                     if not has_excluded_label:
                         lines.append(pr)
                         nb_successive_merged_pr = 0
         return lines
 
-    def _generate_changelog(self, version):
+    def _generate_changelog(self):
         if self.release_type != "hotfix":
             pullrequests = self._get_merged_pullrequest()
         else:
@@ -198,10 +200,11 @@ class ReleaseManager(object):
         if self.generate_debian_changelog:
             self._generate_debian_changelog(prs, version)
 
-        for f in self.files_to_commit:
-            self.git.add(f)
+        if self.files_to_commit:
+            for f in self.files_to_commit:
+                self.git.add(f)
 
-        self.git.commit(m="Version {}".format(version))
+            self.git.commit(m="Version {}".format(version))
 
         return tmp_branch
 
@@ -221,7 +224,13 @@ class ReleaseManager(object):
 
     def _publish(self, version, tmp_branch, pullrequests):
         #merge with the release branch
-        self.git.checkout(RELEASE_BRANCH)
+        try:
+            self.git.checkout(RELEASE_BRANCH)
+        except GitCommandError as e:
+            logging.warning("impossible to checkout {} because {}. We'll try to create the branch".format(
+                RELEASE_BRANCH, e))
+            self.repo.create_head(RELEASE_BRANCH)
+
         self.git.submodule('update')
         self.git.merge(tmp_branch, RELEASE_BRANCH, '--no-ff')
 
@@ -265,34 +274,48 @@ def init_log():
     logging.basicConfig(level=logging.DEBUG)
 
 
-def _read_config_file(file_path):
-    print('file path = {}'.format(file_path))
-    import yaml
-    if not os.path.isfile(file_path):
-        return {}
-
-    stream = file(file_path, 'r')
-    f = yaml.load(stream)
-    print('parsed file = {}'.format(f))
-
-    return f
-
-
 @clingon.clize
-def release(path='.',
+def release(defaults_file='gitflow_release.yml',
+            path='.',
             release_type='minor',
-            remote_name='origin',
-            github_repo='CanalTP/navitia',
+            remote_name='upstream',
+            github_repo='',
             github_user='',
             github_token='',
-            base_branch='master'):
+            base_branch='master',
+            generate_debian_changelog=False,
+            excluded_pr_tag=['hotfix', 'not_in_changelog']):
+    """
+    Used to do a release base on  git flow  of a github project
+    The main use of it is to have a nice changelog based on the github pull request merged since last release
+
+
+    * defaults_file: yaml configuration file used to overload the other parameters
+    * path: path to the git repository to release
+    * release_type: should be 'major', 'minor' or 'hotfix'
+    * remote_name: name of the git remote
+    * github_repo: id of the github repository. should be 'organisation/name_of_the repo'
+    * github_user: optional: name of the github user. If not provided the API calls might be limited
+    * github_token: optional: token to the github user. If not provided the API calls might be limited
+    * base_branch: git branch used to create the release branch
+    * generate_debian_changelog: boolean used to activate the generation of a debian changelog
+    * excluded_pr_tag: list of tags used not to put a given pull request in the changelog
+    """
     init_log()
 
-    # we override the params if hey were given in a configuration file
-    l = locals()
-    conf = _read_config_file('release.yml')
-    l.update(conf)
+    if release_type == 'hotfix':
+        logging.error('hotfixes are not handled for the moment, fell free to make a PR to the script to '
+                      'handle them :)')
+        return 0
 
-    manager = ReleaseManager(**l)
+    manager = ReleaseManager(path=path,
+                             release_type=release_type,
+                             remote_name=remote_name,
+                             github_repo=github_repo,
+                             github_user=github_user,
+                             github_token=github_token,
+                             base_branch=base_branch,
+                             generate_debian_changelog=generate_debian_changelog,
+                             excluded_pr_tag=excluded_pr_tag)
     manager.release()
 
