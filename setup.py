@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import git_release
+import githubflow_release
 
 from setuptools import setup
 
@@ -15,16 +15,16 @@ requirements = [
 version = '0.0.1'  # TODO use git tag ;)
 
 setup(
-    name='git_release',
+    name='githubflow_release',
     version=version,
     description="github flow release",
     author="Antoine Desbordes",
     author_email='antoine.desbordes@gmail.com',
-    url='https://github.com/CanalTP/git_release',
+    url='https://github.com/CanalTP/githubflow_release',
     packages=[
-        'git_release',
+        'githubflow_release',
     ],
-    package_dir={'git_release': 'git_release'},
+    package_dir={'githubflow_release': 'githubflow_release'},
     include_package_data=True,
     install_requires=requirements,
     license="MIT",
@@ -39,7 +39,7 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
     entry_points={'console_scripts': [
-        'git_release = git_release.release:release',
+        'githubflow_release = githubflow_release.release:release',
     ]},
 )
 

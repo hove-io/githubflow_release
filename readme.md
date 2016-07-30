@@ -14,15 +14,15 @@
  
  To know all the parameters use the --help option.
  
- since for a project some options need to be consistent, you can create a `gitflow_release.yml` in the root
+ since for a project some options need to be consistent, you can create a `githubflow_release.yml` in the root
   directory of your project to give some default values.
   The values are overridden if given in the command lines.
   
-  example of `gitflow_release.yml`:
+  example of `githubflow_release.yml`:
   
   ```yml
 # configuration of my project release
-# used by https://github.com/CanalTP/git_release
+# used by https://github.com/CanalTP/githubflow_release
 github_repo: CanalTP/my_project
 base_branch: master
 generate_debian_changelog: False
