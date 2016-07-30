@@ -10,6 +10,10 @@
  
  A changelog can be created using github pullrequest merged since last release.
 
+## Installation
+
+`pip install githubflow_release`
+
 ## Script usage
  
  To know all the parameters use the --help option.
@@ -33,7 +37,7 @@ excluded_pr_tag: [hotfix, not_in_changelog, my_tag]
  
  ```
  cd my_project;
- release.py --release-type minor
+ githubflow_release --release-type minor
  ```
  
  github might be limiting your access to their API. If so you need to provide some github credential.
@@ -42,6 +46,7 @@ excluded_pr_tag: [hotfix, not_in_changelog, my_tag]
  you configuration file):
  
  ```
- ./release.py --release-type minor --github-user 'my_github_login' --github-token 'my_github_custom_token_or_password'
+ githubflow_release --release-type minor --github-user 'my_github_login' --github-token 'my_github_custom_token_or_password'
  ```
  
+
