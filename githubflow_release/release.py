@@ -239,7 +239,8 @@ class ReleaseManager(object):
         self.tag(version, pullrequests)
 
         #and we merge back the release branch to dev (at least for the tag in release)
-        self.git.merge(RELEASE_BRANCH, self.base_branch)
+        self.git.checkout(self.base_branch)
+        self.git.merge(RELEASE_BRANCH)
 
         # we can remove the temporary branch
         logging.info('deleting temporary branch {}'.format(tmp_branch))

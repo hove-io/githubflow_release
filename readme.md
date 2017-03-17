@@ -18,11 +18,11 @@
  
  To know all the parameters use the --help option.
  
- since for a project some options need to be consistent, you can create a `githubflow_release.yml` in the root
+ since for a project some options need to be consistent, you can create a `gitflow_release.yml` in the root
   directory of your project to give some default values.
   The values are overridden if given in the command lines.
   
-  example of `githubflow_release.yml`:
+  example of `gitflow_release.yml`:
   
   ```yml
 # configuration of my project release
