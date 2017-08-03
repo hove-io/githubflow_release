@@ -20,7 +20,7 @@ class PullRequest(object):
         # we consider that if the pr has a merged_at date, it has been merged
         self.is_merged = github_api_response['merged_at'] is not None
         self.raw_response = github_api_response
-        logging.debug('pr: %s -- %s' % (self.title, self.url))
+        logging.debug(u'pr: {} -- {}'.format(self.title, self.url))
         self._labels = None
 
     def fetch_labels(self, auth):
