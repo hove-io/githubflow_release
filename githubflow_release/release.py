@@ -1,12 +1,7 @@
 #!/usr/bin/env python
-from datetime import datetime
 import uuid
 import os
-from shutil import copyfile
-import stat
 from clingon import clingon
-import codecs
-from future.moves import subprocess
 import git
 from git.exc import GitCommandError
 import requests
@@ -25,7 +20,7 @@ class PullRequest(object):
         # we consider that if the pr has a merged_at date, it has been merged
         self.is_merged = github_api_response['merged_at'] is not None
         self.raw_response = github_api_response
-        logging.debug('pr: {} -- {}'.format(self.title, self.url))
+        logging.debug(u'pr: {} -- {}'.format(self.title, self.url))
         self._labels = None
 
     def fetch_labels(self, auth):
@@ -238,7 +233,7 @@ class ReleaseManager(object):
         #we tag the release
         self.tag(version, pullrequests)
 
-        #and we merge back the release branch to dev (at least for the tag in release)
+        #and we merge back the release branch to master/dev (at least for the tag in release)
         self.git.checkout(self.base_branch)
         self.git.merge(RELEASE_BRANCH)
 
