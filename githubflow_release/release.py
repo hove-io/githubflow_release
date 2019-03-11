@@ -97,7 +97,7 @@ class ReleaseManager(object):
         base_branch = RELEASE_BRANCH if self.release_type == 'hotfix' else DEVELOPMENT_BRANCH
         while True:
             query = "{host}/repos/{repo}/pulls?" \
-                    "state=closed&base={base_branch}&sort=updated&direction=desc&page={page}"\
+                    "state=closed&base={base_branch}&sort=newest&direction=desc&page={page}"\
                     .format(host=GITHUB_API_URL, repo=self.github_repository,
                             base_branch=base_branch,
                             latest_tag=self.last_tag,
