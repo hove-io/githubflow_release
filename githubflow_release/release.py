@@ -8,6 +8,10 @@ import requests
 import semver
 import logging
 
+os.environ['LC_ALL'] = 'en_US'
+os.environ['GIT_PYTHON_TRACE'] = '1'  # can be 0 (no trace), 1 (git commands) or full (git commands + git output)
+
+
 # TODO param this
 RELEASE_BRANCH = 'release'
 
@@ -235,7 +239,7 @@ class ReleaseManager(object):
 
         #and we merge back the release branch to master/dev (at least for the tag in release)
         self.git.checkout(self.base_branch)
-        self.git.merge(RELEASE_BRANCH)
+        self.git.merge(RELEASE_BRANCH, '--ff')
 
         # we can remove the temporary branch
         logging.info('deleting temporary branch {}'.format(tmp_branch))
