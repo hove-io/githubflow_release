@@ -2,4 +2,4 @@ clingon==0.2.0rc1
 GitPython==2.0.6
 requests==2.20.0
 semver==2.6.0
-PyYAML==3.12
+PyYAML==5.1
