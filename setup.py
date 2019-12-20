@@ -6,7 +6,7 @@ import githubflow_release
 from setuptools import setup
 
 requirements = [
-	'clingon',
+	'docopt',
 	'GitPython',
 	'requests',
 	'semver'
