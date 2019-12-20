@@ -10,7 +10,7 @@ docopt = "*"
 requests = "==2.20.0"
 semver = "==2.6.0"
 GitPython = "*"
-PyYAML = "==3.12"
+PyYAML = "==5.1"
 
 [requires]
 python_version = "3.6"
