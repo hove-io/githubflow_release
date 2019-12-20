@@ -84,11 +84,10 @@ class ReleaseManager(object):
         self._publish(version, tmp_branch, pullrequests)
 
     def _apply_commit(self, tmp_branch, pullrequests):
+        tmp_branch.checkout()
         for pr in pullrequests:
             github_response = requests.get(pr.commits_url, auth=self.github_auth)
             commits = github_response.json()
-            tmp_branch.checkout()
-
             for commit in commits:
                 commit_sha = commit['sha']
                 self.git.execute(['git', 'cherry-pick', '-x', commit_sha])
