@@ -2,5 +2,4 @@ docopt
 GitPython
 requests==2.20.0
 semver==2.6.0
-PyYAML==3.12
-
+PyYAML==5.1
