@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import uuid
 import os
-from clingon import clingon
 import git
 from git.exc import GitCommandError
 import requests
@@ -26,6 +25,7 @@ class PullRequest(object):
         self.raw_response = github_api_response
         logging.debug(u'pr: {} -- {}'.format(self.title, self.url))
         self._labels = None
+        self.commits_url = github_api_response['commits_url']
 
     def fetch_labels(self, auth):
         """ call github to fetch the labels of the pr """
@@ -37,7 +37,7 @@ class PullRequest(object):
 
 class ReleaseManager(object):
     def __init__(self, path, release_type, remote_name, github_repo, github_user, github_token,
-                 base_branch, generate_debian_changelog, excluded_pr_tag):
+                 base_branch, generate_debian_changelog, hotfix_pr_ids, excluded_pr_tag):
         self.generate_debian_changelog = generate_debian_changelog
         self.excluded_pr_tag = excluded_pr_tag
         self.release_type = release_type
@@ -50,6 +50,7 @@ class ReleaseManager(object):
             self.github_auth = requests.auth.HTTPBasicAuth(github_user, github_token)
         else:
             self.github_auth = None
+        self.hotfix_pr_ids = hotfix_pr_ids or []
 
         # TODO get the remote repos to call (based on git remote -v ?)
         self.github_repository = github_repo
@@ -63,13 +64,34 @@ class ReleaseManager(object):
         self.tag_footer_format = ''
 
     def release(self):
-        logging.info("release {}".format(self.release_type))
+        logging.info("making release {}".format(self.release_type))
         self._update_repository()
         version = self._get_new_version_number()
         logging.debug("new tag is {}".format(version))
         pullrequests = self._generate_changelog()
         tmp_branch = self._make_git_release(version, pullrequests)
         self._publish(version, tmp_branch, pullrequests)
+
+    def hotfix(self):
+        logging.info("release {}".format(self.release_type))
+        self._update_repository()
+        version = self._get_new_version_number()
+        logging.debug("new tag is {}".format(version))
+        pullrequests = self._generate_changelog()
+        tmp_branch = self._make_git_release(version, pullrequests)
+
+        self._apply_commit(tmp_branch, pullrequests)
+        self._publish(version, tmp_branch, pullrequests)
+
+    def _apply_commit(self, tmp_branch, pullrequests):
+        for pr in pullrequests:
+            github_response = requests.get(pr.commits_url, auth=self.github_auth)
+            commits = github_response.json()
+            tmp_branch.checkout()
+
+            for commit in commits:
+                commit_sha = commit['sha']
+                self.git.execute(['git', 'cherry-pick', '-x', commit_sha])
 
     def _get_new_version_number(self):
         try:
@@ -87,12 +109,7 @@ class ReleaseManager(object):
         elif self.release_type == 'minor':
             return semver.bump_minor(last_tag)
         elif self.release_type == 'hotfix':
-            # TODO I think we can do better stuff for hotfixes and automatically merge some PR passed as
-            # arguments
-            # too early to do anything then
-            logging.fatal("hotfixes are not implemented yet, it's open source you're welcome to do it")
-            exit(2)
-            #return semver.bump_hotfix(last_tag)
+            return semver.bump_patch(last_tag)
         else:
             logging.fatal('{} is not a known release type'.format(self.release_type))
             exit(2)
@@ -153,12 +170,27 @@ class ReleaseManager(object):
                         nb_successive_merged_pr = 0
         return lines
 
+    def _get_hotfix_pullrequest(self):
+        hotfix_pullrequests = []
+
+        for pr_id in self.hotfix_pr_ids:
+            query = "https://api.github.com/repos/{repo}/pulls/{pr_id}" .format(repo=self.github_repository,
+                                                                                pr_id=pr_id)
+            github_response = requests.get(query, auth=self.github_auth)
+            if github_response.status_code != 200:
+                message = github_response.json()['message']
+                logging.error(u'Impossible to retrieve PR:\n  %s', message)
+                return
+            pr = PullRequest(github_response.json())
+            hotfix_pullrequests.append(pr)
+
+        return hotfix_pullrequests
+
     def _generate_changelog(self):
         if self.release_type != "hotfix":
             pullrequests = self._get_merged_pullrequest()
         else:
-            # TODO: for hotfixes we'll need to generate a changelog based on the hotfix PRs
-            pullrequests = []
+            pullrequests = self._get_hotfix_pullrequest()
 
         # TODO we could have a way to save the PR in a file to let the user customize it
 
@@ -274,16 +306,16 @@ def init_log():
     logging.basicConfig(level=logging.DEBUG)
 
 
-@clingon.clize
 def release(defaults_file='gitflow_release.yml',
-            path='.',
+            project_path='.',
             release_type='minor',
             remote_name='upstream',
-            github_repo='',
-            github_user='',
-            github_token='',
+            github_repo=None,
+            github_user=None,
+            github_token=None,
             base_branch='master',
             generate_debian_changelog=False,
+            hotfix_pr_ids=None,
             excluded_pr_tag=['hotfix', 'not_in_changelog']):
     """
     Used to do a release base on  git flow  of a github project
@@ -291,7 +323,7 @@ def release(defaults_file='gitflow_release.yml',
 
 
     * defaults_file: yaml configuration file used to overload the other parameters
-    * path: path to the git repository to release
+    * project_path: project_path to the git repository to release
     * release_type: should be 'major', 'minor' or 'hotfix'
     * remote_name: name of the git remote
     * github_repo: id of the github repository. should be 'organisation/name_of_the repo'
@@ -303,12 +335,7 @@ def release(defaults_file='gitflow_release.yml',
     """
     init_log()
 
-    if release_type == 'hotfix':
-        logging.error('hotfixes are not handled for the moment, fell free to make a PR to the script to '
-                      'handle them :)')
-        return 0
-
-    manager = ReleaseManager(path=path,
+    manager = ReleaseManager(path=project_path,
                              release_type=release_type,
                              remote_name=remote_name,
                              github_repo=github_repo,
@@ -316,6 +343,10 @@ def release(defaults_file='gitflow_release.yml',
                              github_token=github_token,
                              base_branch=base_branch,
                              generate_debian_changelog=generate_debian_changelog,
+                             hotfix_pr_ids=hotfix_pr_ids,
                              excluded_pr_tag=excluded_pr_tag)
-    manager.release()
+    if release_type == 'hotfix':
+        manager.hotfix()
+    else:
+        manager.release()
 
