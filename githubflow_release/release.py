@@ -63,25 +63,24 @@ class ReleaseManager(object):
         self.tag_name_format = 'v{version}'  # can be formated with {version}
         self.tag_footer_format = ''
 
-    def release(self):
-        logging.info("making release {}".format(self.release_type))
+    def _doit(self):
+        logging.info("making {}".format(self.release_type))
         self._update_repository()
         version = self._get_new_version_number()
         logging.debug("new tag is {}".format(version))
         pullrequests = self._generate_changelog()
         tmp_branch = self._make_git_release(version, pullrequests)
+
+        if self.release_type == 'hotfix':
+            self._apply_commit(tmp_branch, pullrequests)
+
         self._publish(version, tmp_branch, pullrequests)
+
+    def release(self):
+        self._doit()
 
     def hotfix(self):
-        logging.info("release {}".format(self.release_type))
-        self._update_repository()
-        version = self._get_new_version_number()
-        logging.debug("new tag is {}".format(version))
-        pullrequests = self._generate_changelog()
-        tmp_branch = self._make_git_release(version, pullrequests)
-
-        self._apply_commit(tmp_branch, pullrequests)
-        self._publish(version, tmp_branch, pullrequests)
+        self._doit()
 
     def _apply_commit(self, tmp_branch, pullrequests):
         tmp_branch.checkout()
@@ -305,8 +304,7 @@ def init_log():
     logging.basicConfig(level=logging.DEBUG)
 
 
-def release(defaults_file='gitflow_release.yml',
-            project_path='.',
+def release(project_path='.',
             release_type='minor',
             remote_name='upstream',
             github_repo=None,
@@ -315,7 +313,7 @@ def release(defaults_file='gitflow_release.yml',
             base_branch='master',
             generate_debian_changelog=False,
             hotfix_pr_ids=None,
-            excluded_pr_tag=['hotfix', 'not_in_changelog']):
+            excluded_pr_tag=None):
     """
     Used to do a release base on  git flow  of a github project
     The main use of it is to have a nice changelog based on the github pull request merged since last release

@@ -28,17 +28,16 @@ Options:
   --base-branch=<branch>    Base branch  [default: master]
   --debian-changelog        Generate debian_changelog
   --excluded-pr-tag=<tags>  PR will be excluded if labelled with the given tag [default: hotfix not_in_changelog]
-  --hotfix-pr-id=<pr-id>      Hotfix PR ID
+  --hotfix-pr-id=<pr-id>    Hotfix PR ID
 """
 from docopt import docopt
 from githubflow_release.release import release
 
 
 def main():
-    arguments = docopt(__doc__, version='Github flow 1.0.0')
+    arguments = docopt(__doc__, version='Github Flow Release 1.0.0')
 
-    release(defaults_file=arguments['--defaults-file'],
-            project_path=arguments['--project-path'],
+    release(project_path=arguments['--project-path'],
             release_type=arguments['--release-type'],
             remote_name=arguments['--remote-name'],
             github_repo=arguments['--github-repo'],
