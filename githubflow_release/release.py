@@ -332,6 +332,8 @@ def release(project_path='.',
     """
     init_log()
 
+    excluded_pr_tag = ['hotfix', 'not_in_changelog'] if excluded_pr_tag is None else excluded_pr_tag
+
     manager = ReleaseManager(path=project_path,
                              release_type=release_type,
                              remote_name=remote_name,
