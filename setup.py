@@ -12,7 +12,7 @@ requirements = [
 	'semver'
 ]
 
-version = '0.0.1'  # TODO use git tag ;)
+version = '0.0.3'  # TODO use git tag ;)
 
 setup(
     name='githubflow_release',
