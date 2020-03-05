@@ -13,6 +13,7 @@ os.environ['GIT_PYTHON_TRACE'] = '1'  # can be 0 (no trace), 1 (git commands) or
 
 # TODO param this
 RELEASE_BRANCH = 'release'
+GITHUB_API_URL = 'https://api.github.com'
 
 
 class PullRequest(object):
@@ -67,7 +68,7 @@ class ReleaseManager(object):
         logging.info("making {}".format(self.release_type))
         self._update_repository()
         version = self._get_new_version_number()
-        logging.debug("new tag is {}".format(version))
+        logging.info("new tag is {}".format(version))
         pullrequests = self._generate_changelog()
         tmp_branch = self._make_git_release(version, pullrequests)
 
@@ -116,9 +117,10 @@ class ReleaseManager(object):
         # lazy get all closed PR ordered by last updated
         page = 1
         while True:
-            query = "https://api.github.com/repos/{repo}/pulls?" \
+            query = "{host}/repos/{repo}/pulls?" \
                     "state=closed&base={base_branch}&sort=updated&direction=desc&page={page}"\
-                    .format(repo=self.github_repository,
+                    .format(host=GITHUB_API_URL,
+                            repo=self.github_repository,
                             base_branch=self.base_branch,
                             latest_tag=self.last_tag,
                             page=page)
@@ -172,8 +174,9 @@ class ReleaseManager(object):
         hotfix_pullrequests = []
 
         for pr_id in self.hotfix_pr_ids:
-            query = "https://api.github.com/repos/{repo}/pulls/{pr_id}" .format(repo=self.github_repository,
-                                                                                pr_id=pr_id)
+            query = "{host}/repos/{repo}/pulls/{pr_id}" .format(host=GITHUB_API_URL, 
+                                                                repo=self.github_repository,
+                                                                pr_id=pr_id)
             github_response = requests.get(query, auth=self.github_auth)
             if github_response.status_code != 200:
                 message = github_response.json()['message']
@@ -301,7 +304,7 @@ class ReleaseManager(object):
 
 def init_log():
     # TODO better log
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
 def release(project_path='.',
@@ -348,4 +351,3 @@ def release(project_path='.',
         manager.hotfix()
     else:
         manager.release()
-
