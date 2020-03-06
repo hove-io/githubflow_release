@@ -150,7 +150,17 @@ class ReleaseManager(object):
             # and if distant/release contains HEAD of PR
             # (stops after 10 successive merged PR)
             if pr.is_merged:
-                branches = self.git.branch('-r', '--contains', pr.head_sha1) + '\n'
+                try:
+                    branches = self.git.branch('-r', '--contains', pr.head_sha1) + '\n'
+                except GitCommandError as e:
+                    # if a PR
+                    #     - is removed by a reset --hard and a push --force
+                    #     - is squashed and merged --fast-foward
+                    # the git history is rewritten
+                    # so pr.head_sha1 does not exist anymore in the git history
+                    # Therefore pr.title will not appear in the changelog
+                    logging.warning("Commit {} of PR {} not found".format(pr.head_sha1, pr.url))
+                    continue
                 # adding separators before and after to match only branch name
                 release_branch_name = ' {remote}/{release}\n'.format(remote=self.remote_name,
                                                                      release=RELEASE_BRANCH)
@@ -348,4 +358,3 @@ def release(project_path='.',
         manager.hotfix()
     else:
         manager.release()
-
