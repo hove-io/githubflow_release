@@ -6,6 +6,7 @@ from git.exc import GitCommandError
 import requests
 import semver
 import logging
+import sys
 
 os.environ['LC_ALL'] = 'en_US'
 os.environ['GIT_PYTHON_TRACE'] = '1'  # can be 0 (no trace), 1 (git commands) or full (git commands + git output)
@@ -38,7 +39,7 @@ class PullRequest(object):
 
 class ReleaseManager(object):
     def __init__(self, path, release_type, remote_name, github_repo, github_user, github_token,
-                 base_branch, generate_debian_changelog, hotfix_pr_ids, excluded_pr_tag):
+                 base_branch, generate_debian_changelog, hotfix_pr_ids, excluded_pr_tag, dry_run):
         self.generate_debian_changelog = generate_debian_changelog
         self.excluded_pr_tag = excluded_pr_tag
         self.release_type = release_type
@@ -52,6 +53,7 @@ class ReleaseManager(object):
         else:
             self.github_auth = None
         self.hotfix_pr_ids = hotfix_pr_ids or []
+        self.dry_run = dry_run
 
         # TODO get the remote repos to call (based on git remote -v ?)
         self.github_repository = github_repo
@@ -71,6 +73,10 @@ class ReleaseManager(object):
         logging.info("new tag is {}".format(version))
         pullrequests = self._generate_changelog()
         tmp_branch = self._make_git_release(version, pullrequests)
+        if self.dry_run:
+            print('Changelog:')
+            print(changelog)
+            sys.exit(0)
 
         if self.release_type == 'hotfix':
             self._apply_commit(tmp_branch, pullrequests)
@@ -118,7 +124,7 @@ class ReleaseManager(object):
         page = 1
         while True:
             query = "{host}/repos/{repo}/pulls?" \
-                    "state=closed&base={base_branch}&sort=updated&direction=desc&page={page}"\
+                    "state=closed&base={base_branch}&sort=newest&direction=desc&page={page}"\
                     .format(host=GITHUB_API_URL,
                             repo=self.github_repository,
                             base_branch=self.base_branch,
@@ -326,7 +332,8 @@ def release(project_path='.',
             base_branch='master',
             generate_debian_changelog=False,
             hotfix_pr_ids=None,
-            excluded_pr_tag=None):
+            excluded_pr_tag=None,
+            dry_run=None):
     """
     Used to do a release base on  git flow  of a github project
     The main use of it is to have a nice changelog based on the github pull request merged since last release
@@ -342,6 +349,7 @@ def release(project_path='.',
     * base_branch: git branch used to create the release branch
     * generate_debian_changelog: boolean used to activate the generation of a debian changelog
     * excluded_pr_tag: list of tags used not to put a given pull request in the changelog
+    * dry-run: Display changelog without doing the release
     """
     init_log()
 
@@ -356,7 +364,8 @@ def release(project_path='.',
                              base_branch=base_branch,
                              generate_debian_changelog=generate_debian_changelog,
                              hotfix_pr_ids=hotfix_pr_ids,
-                             excluded_pr_tag=excluded_pr_tag)
+                             excluded_pr_tag=excluded_pr_tag,
+                             dry_run=dry_run)
     if release_type == 'hotfix':
         manager.hotfix()
     else:

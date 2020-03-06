@@ -48,5 +48,3 @@ excluded_pr_tag: [hotfix, not_in_changelog, my_tag]
  ```
  githubflow_release --release-type minor --github-user 'my_github_login' --github-token 'my_github_custom_token_or_password'
  ```
- 
-

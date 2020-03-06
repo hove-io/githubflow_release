@@ -1,17 +1,7 @@
 """Github flow release
 
 Usage:
-  githubflow_release (--release-type <type>)
-                     (--github-repo <repo>)
-                     [--defaults-file=FILE]
-                     [--project-path=DIR]
-                     [--remote-name=<name>]
-                     [--github-user=<user>]
-                     [--github-token=<token>]
-                     [--base-branch=<branch>]
-                     [--debian-changelog]
-                     [--excluded-pr-tag <tags>]...
-                     [--hotfix-pr-id <pr-id>]...
+  githubflow_release [options]
   githubflow_release (-h | --help)
   githubflow_release --version
 
@@ -22,13 +12,14 @@ Options:
   --project-path=DIR        Project path   [default: .]
   --release-type=<type>     Release type   [default: minor]
   --remote-name=<name>      Remote name    [default: upstream]
-  --github-repo=<repo>      Github repo
+  --github-repo=<repo>      Github repo (User/Repository)
   --github-user=<user>      Github user
-  --github-token=<token>    Github toke
+  --github-token=<token>    Github token
   --base-branch=<branch>    Base branch  [default: master]
   --debian-changelog        Generate debian_changelog
   --excluded-pr-tag=<tags>  PR will be excluded if labelled with the given tag [default: hotfix not_in_changelog]
   --hotfix-pr-id=<pr-id>    Hotfix PR ID
+  --dry-run                 Display changelog without doing the release
 """
 from docopt import docopt
 from githubflow_release.release import release
@@ -46,8 +37,8 @@ def main():
             base_branch=arguments['--base-branch'],
             generate_debian_changelog=arguments['--debian-changelog'],
             hotfix_pr_ids=arguments['--hotfix-pr-id'],
-            excluded_pr_tag=arguments['--excluded-pr-tag'])
-
+            excluded_pr_tag=arguments['--excluded-pr-tag'],
+            dry_run=arguments['--dry-run'])
 
 if __name__ == '__main__':
     main()
