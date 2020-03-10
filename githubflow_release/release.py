@@ -71,17 +71,18 @@ class ReleaseManager(object):
         self._update_repository()
         version = self._get_new_version_number()
         logging.info("new tag is {}".format(version))
-        pullrequests = self._generate_changelog()
-        tmp_branch = self._make_git_release(version, pullrequests)
+        pullrequests = self._get_pull_requests()
+        changelog = self._generate_changelog(version, pullrequests)
         if self.dry_run:
             print('Changelog:')
             print(changelog)
             sys.exit(0)
 
+        tmp_branch = self._make_git_release(version, pullrequests)
         if self.release_type == 'hotfix':
             self._apply_commit(tmp_branch, pullrequests)
 
-        self._publish(version, tmp_branch, pullrequests)
+        self._publish(version, tmp_branch, changelog)
 
     def release(self):
         self._doit()
@@ -203,7 +204,7 @@ class ReleaseManager(object):
 
         return hotfix_pullrequests
 
-    def _generate_changelog(self):
+    def _get_pull_requests(self):
         if self.release_type != "hotfix":
             pullrequests = self._get_merged_pullrequest()
         else:
@@ -256,21 +257,13 @@ class ReleaseManager(object):
 
         return tmp_branch
 
-    def tag(self, version, pullrequests):
+    def tag(self, version, changelog):
         """ tag the git release branch with the version and the changelog """
         tag_message = self.tag_header_format.format(version=version)
-
-        for pr in pullrequests:
-            tag_message += self.tag_pr_line_format.format(pr=pr)
-
-        tag_message += self.tag_footer_format.format(version=version)
-
-        logging.info("tag: {}".format(tag_message))
-
         tag_name = self.tag_name_format.format(version=version)
-        self.repo.create_tag(tag_name, ref=RELEASE_BRANCH, message=tag_message)
+        self.repo.create_tag(tag_name, ref=RELEASE_BRANCH, message=changelog)
 
-    def _publish(self, version, tmp_branch, pullrequests):
+    def _publish(self, version, tmp_branch, changelog):
         #merge with the release branch
         try:
             self.git.checkout(RELEASE_BRANCH)
@@ -284,14 +277,15 @@ class ReleaseManager(object):
 
         logging.debug("current branch {}".format(self.repo.active_branch))
         #we tag the release
-        self.tag(version, pullrequests)
+        logging.info("tag: {}".format(changelog))
+        self.tag(version, changelog)
 
         #and we merge back the release branch to master/dev (at least for the tag in release)
         self.git.checkout(self.base_branch)
         self.git.merge(RELEASE_BRANCH, '--ff')
 
         # we can remove the temporary branch
-        logging.info('deleting temporary branch {}'.format(tmp_branch))
+        logging.debug('deleting temporary branch {}'.format(tmp_branch))
         self.repo.delete_head(tmp_branch)
 
         logging.info("============================================")
@@ -316,6 +310,14 @@ class ReleaseManager(object):
             os.system('cd {project} && {cmd}; cd -'.format(project=self.project_path, cmd=dch))
 
         self.files_to_commit.append(changelog_filename)
+
+    def _generate_changelog(self, version, pullrequests):
+        changelog = self.tag_header_format.format(version=version)
+        for pr in pullrequests:
+            changelog += self.tag_pr_line_format.format(pr=pr)
+        changelog += self.tag_footer_format.format(version=version)
+
+        return changelog
 
 
 def init_log():
