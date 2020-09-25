@@ -282,7 +282,7 @@ class ReleaseManager(object):
 
         #and we merge back the release branch to master/dev (at least for the tag in release)
         self.git.checkout(self.base_branch)
-        self.git.merge(RELEASE_BRANCH, '--ff')
+        self.git.merge(RELEASE_BRANCH, '--no-ff')
 
         # we can remove the temporary branch
         logging.debug('deleting temporary branch {}'.format(tmp_branch))
