@@ -1,7 +1,18 @@
 """Github flow release
 
 Usage:
-  githubflow_release [options]
+  githubflow_release (--release-type <type>)
+                     (--github-repo <repo>)
+                     [--defaults-file=FILE]
+                     [--project-path=DIR]
+                     [--remote-name=<name>]
+                     [--github-user=<user>]
+                     [--github-token=<token>]
+                     [--base-branch=<branch>]
+                     [--debian-changelog]
+                     [--excluded-pr-tag <tags>]...
+                     [--hotfix-pr-id <pr-id>]...
+                     [--dry-run]
   githubflow_release (-h | --help)
   githubflow_release --version
 
