@@ -5,13 +5,8 @@ import githubflow_release
 
 from setuptools import setup
 
-requirements = [
-    'docopt==0.6.2',
-    'gitdb2==2.0.6',
-    'GitPython==2.1.15',
-    'requests==2.24.0',
-    'semver==2.13.0'
-]
+with open('requirements.txt') as fp:
+    requirements = fp.read()
 
 version = '0.0.3'  # TODO use git tag ;)
 
