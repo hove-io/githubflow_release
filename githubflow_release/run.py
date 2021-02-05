@@ -3,12 +3,12 @@
 Usage:
   githubflow_release (--release-type <type>)
                      (--github-repo <repo>)
-                     [--defaults-file=FILE]
-                     [--project-path=DIR]
-                     [--remote-name=<name>]
-                     [--github-user=<user>]
-                     [--github-token=<token>]
-                     [--base-branch=<branch>]
+                     [--defaults-file <FILE>]
+                     [--project-path <DIR>]
+                     [--remote-name <name>]
+                     [--github-user <user>]
+                     [--github-token <token>]
+                     [--base-branch <branch>]
                      [--debian-changelog]
                      [--excluded-pr-tag <tags>]...
                      [--hotfix-pr-id <pr-id>]...
@@ -19,17 +19,17 @@ Usage:
 Options:
   -h --help                 Show this screen.
   --version                 Show version.
-  --defaults-file=FILE      Defaults file  [default: gitflow_release.yml]
-  --project-path=DIR        Project path   [default: .]
-  --release-type=<type>     Release type   [default: minor]
-  --remote-name=<name>      Remote name    [default: upstream]
-  --github-repo=<repo>      Github repo (User/Repository)
-  --github-user=<user>      Github user
-  --github-token=<token>    Github token
-  --base-branch=<branch>    Base branch  [default: master]
+  --defaults-file <FILE>    Defaults file  [default: gitflow_release.yml]
+  --project-path <DIR>      Project path   [default: .]
+  --release-type <type>     Release type   [default: minor]
+  --remote-name <name>      Remote name    [default: upstream]
+  --github-repo <repo>      Github repo (User/Repository)
+  --github-user <user>      Github user
+  --github-token <token>    Github token
+  --base-branch <branch>    Base branch  [default: master]
   --debian-changelog        Generate debian_changelog
-  --excluded-pr-tag=<tags>  PR will be excluded if labelled with the given tag [default: hotfix not_in_changelog]
-  --hotfix-pr-id=<pr-id>    Hotfix PR ID
+  --excluded-pr-tag <tags>  PR will be excluded if labelled with the given tag [default: hotfix not_in_changelog]
+  --hotfix-pr-id <pr-id>    Hotfix PR ID
   --dry-run                 Display changelog without doing the release
 """
 from docopt import docopt
