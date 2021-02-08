@@ -41,7 +41,7 @@ python githubflow_release/run.py --help  # invoke
 
 To know all the parameters use the --help option.
 
-Since for a project some options need to be consistent, you can create a `gitflow_release.yml` in the root
+Some projects may need to keep consistency for some options: you can create a `gitflow_release.yml` in the root
 directory of your project to give some default values.
 The values are overridden if given in the command lines.
   
