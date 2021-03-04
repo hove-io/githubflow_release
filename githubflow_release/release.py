@@ -39,7 +39,7 @@ class PullRequest(object):
 
 class ReleaseManager(object):
     def __init__(self, path, release_type, remote_name, github_repo, github_user, github_token,
-                 base_branch, generate_debian_changelog, hotfix_pr_ids, excluded_pr_tag, dry_run, auto_push=False):
+                 base_branch, generate_debian_changelog, hotfix_pr_ids, excluded_pr_tag, dry_run, auto_push=None):
         self.generate_debian_changelog = generate_debian_changelog
         self.excluded_pr_tag = excluded_pr_tag
         self.release_type = release_type
@@ -363,7 +363,7 @@ def release(project_path='.',
             hotfix_pr_ids=None,
             excluded_pr_tag=None,
             dry_run=None,
-            auto_push=False):
+            auto_push=None):
     """
     Used to do a release base on  git flow  of a github project
     The main use of it is to have a nice changelog based on the github pull request merged since last release
