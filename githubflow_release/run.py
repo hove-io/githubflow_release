@@ -13,6 +13,7 @@ Usage:
                      [--excluded-pr-tag <tags>]...
                      [--hotfix-pr-id <pr-id>]...
                      [--dry-run]
+                     [--auto-push]
   githubflow_release (-h | --help)
   githubflow_release --version
 
@@ -31,6 +32,7 @@ Options:
   --excluded-pr-tag <tags>  PR will be excluded if labelled with the given tag [default: hotfix not_in_changelog]
   --hotfix-pr-id <pr-id>    Hotfix PR ID
   --dry-run                 Display changelog without doing the release
+  --auto-push               Automatic push release and tags
 """
 from docopt import docopt
 from githubflow_release.release import release
@@ -49,7 +51,9 @@ def main():
             generate_debian_changelog=arguments['--debian-changelog'],
             hotfix_pr_ids=arguments['--hotfix-pr-id'],
             excluded_pr_tag=arguments['--excluded-pr-tag'],
-            dry_run=arguments['--dry-run'])
+            dry_run=arguments['--dry-run'],
+            auto_push=arguments['--auto-push'])
+
 
 if __name__ == '__main__':
     main()
