@@ -34,14 +34,14 @@ In the dedicated python 3 virtualenv, inside repository:
 
 ```bash
 pip install -r requirements.txt          # install dependencies only
-python githubflow_release --help # invoke
+python githubflow_release/run.py --help # invoke
 ```
 
 Or
 
 ```bash
 pip install -r requirements.txt          # install dependencies only
-python githubflow_get_new_version --help # invoke
+python githubflow_get_new_version/new_version.py --help # invoke
 ```
 ## Script usage
 
@@ -83,6 +83,18 @@ Get new version (in the dedicated virtualenv):
 ```bash
 cd my_project;
 githubflow_get_new_version --release-type major|minor|hotfix --project-path /path/repo_name/ --remote-name origin
+```
+
+Example for [navitia](https://github.com/CanalTP/navitia) repo (actual version 10.4.0):
+
+```bash
+cd my_project
+githubflow_get_new_version --release-type minor  --project-path /workspace/navitia/ --remote-name origin
+```
+
+Output:
+```bash
+10.5.0
 ```
 
 Github might be limiting your access to their API. If so you need to provide some github credential.
