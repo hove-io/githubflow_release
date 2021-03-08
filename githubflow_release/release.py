@@ -39,7 +39,7 @@ class PullRequest(object):
 
 class ReleaseManager(object):
     def __init__(self, path, release_type, remote_name, github_repo, github_user, github_token,
-                 base_branch, generate_debian_changelog, hotfix_pr_ids, excluded_pr_tag, dry_run):
+                 base_branch, generate_debian_changelog, hotfix_pr_ids, excluded_pr_tag, dry_run, auto_push=None):
         self.generate_debian_changelog = generate_debian_changelog
         self.excluded_pr_tag = excluded_pr_tag
         self.release_type = release_type
@@ -65,12 +65,18 @@ class ReleaseManager(object):
         self.tag_pr_line_format = ' * {pr.title}  <{pr.url}>\n'  # can be formated with {pr}
         self.tag_name_format = 'v{version}'  # can be formated with {version}
         self.tag_footer_format = ''
+        self.auto_push = auto_push
 
-    def _doit(self):
+    def update_and_get_new_version(self):
         logging.info("making {}".format(self.release_type))
         self._update_repository()
         version = self._get_new_version_number()
         logging.info("new tag is {}".format(version))
+        return version
+
+    def _doit(self):
+        version = self.update_and_get_new_version()
+
         pullrequests = self._get_pull_requests()
         changelog = self._generate_changelog(version, pullrequests)
         if self.dry_run:
@@ -84,10 +90,7 @@ class ReleaseManager(object):
 
         self._publish(version, tmp_branch, changelog)
 
-    def release(self):
-        self._doit()
-
-    def hotfix(self):
+    def release_or_hotfix(self):
         self._doit()
 
     def _apply_commit(self, tmp_branch, pullrequests):
@@ -288,10 +291,14 @@ class ReleaseManager(object):
         logging.debug('deleting temporary branch {}'.format(tmp_branch))
         self.repo.delete_head(tmp_branch)
 
-        logging.info("============================================")
-        logging.info("Check the release, and when you're happy do:")
-        logging.info("  git push {} {} {} --tags".format(self.remote_name, self.base_branch, RELEASE_BRANCH))
-        #TODO: when we'll be confident, we will do that automaticaly
+        if self.auto_push:
+            logging.info("Automatically push: {}, {} and tags".format(self.base_branch, RELEASE_BRANCH))
+            self.repo.remote(self.remote_name).push([self.base_branch, RELEASE_BRANCH, '--tags'])
+        else:
+            # TODO: when we'll be confident, we will do that automatically
+            logging.info("============================================")
+            logging.info("Check the release, and when you're happy do:")
+            logging.info("  git push {} {} {} --tags".format(self.remote_name, self.base_branch, RELEASE_BRANCH))
 
     def _update_repository(self):
         """we fetch all latest changes"""
@@ -325,6 +332,26 @@ def init_log():
     logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
+def new_version(project_path='.',
+                release_type='minor',
+                remote_name='upstream',
+                github_user=None,
+                github_token=None
+                ):
+    manager = ReleaseManager(path=project_path,
+                             release_type=release_type,
+                             remote_name=remote_name,
+                             github_repo=None,
+                             github_user=github_user,
+                             github_token=github_token,
+                             base_branch=None,
+                             generate_debian_changelog=None,
+                             hotfix_pr_ids=None,
+                             excluded_pr_tag=None,
+                             dry_run=None)
+    return manager.update_and_get_new_version()
+
+
 def release(project_path='.',
             release_type='minor',
             remote_name='upstream',
@@ -335,7 +362,8 @@ def release(project_path='.',
             generate_debian_changelog=False,
             hotfix_pr_ids=None,
             excluded_pr_tag=None,
-            dry_run=None):
+            dry_run=None,
+            auto_push=None):
     """
     Used to do a release base on  git flow  of a github project
     The main use of it is to have a nice changelog based on the github pull request merged since last release
@@ -367,8 +395,7 @@ def release(project_path='.',
                              generate_debian_changelog=generate_debian_changelog,
                              hotfix_pr_ids=hotfix_pr_ids,
                              excluded_pr_tag=excluded_pr_tag,
-                             dry_run=dry_run)
-    if release_type == 'hotfix':
-        manager.hotfix()
-    else:
-        manager.release()
+                             dry_run=dry_run,
+                             auto_push=auto_push)
+
+    manager.release_or_hotfix()

@@ -34,9 +34,15 @@ In the dedicated python 3 virtualenv, inside repository:
 
 ```bash
 pip install -r requirements.txt          # install dependencies only
-python githubflow_release/run.py --help  # invoke
+python githubflow_release/run.py --help # invoke
 ```
 
+Or
+
+```bash
+pip install -r requirements.txt          # install dependencies only
+python githubflow_get_new_version/new_version.py --help # invoke
+```
 ## Script usage
 
 To know all the parameters use the --help option.
@@ -56,11 +62,39 @@ generate_debian_changelog: False
 excluded_pr_tag: [hotfix, not_in_changelog, my_tag]
 ```
 
-With nice defaults for you project, to do a release you can just do (in the dedicated virtualenv):
+Usage:
+
+Create new release (in the dedicated virtualenv):
 
 ```bash
 cd my_project;
-githubflow_release --release-type minor
+githubflow_release --release-type major|minor --github-repo User/repo_name --project-path /path/repo_name/ --remote-name origin
+```
+
+You can automatically push the release branch master (--base-branch) and tags by adding the parameter --auto-push (in the dedicated virtualenv):
+
+```bash
+cd my_project;
+githubflow_release --release-type major|minor --github-repo User/repo_name --project-path /path/repo_name/ --remote-name origin --auto-push
+```
+
+Get new version (in the dedicated virtualenv):
+
+```bash
+cd my_project;
+githubflow_get_new_version --release-type major|minor|hotfix --project-path /path/repo_name/ --remote-name origin
+```
+
+Example for [navitia](https://github.com/CanalTP/navitia) repo (actual version 10.4.0):
+
+```bash
+cd my_project
+githubflow_get_new_version --release-type minor  --project-path /workspace/navitia/ --remote-name origin
+```
+
+Output:
+```bash
+10.5.0
 ```
 
 Github might be limiting your access to their API. If so you need to provide some github credential.

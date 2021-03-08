@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import githubflow_release
-
 from setuptools import setup
 
 with open('requirements.txt') as fp:
@@ -37,6 +35,7 @@ setup(
     ],
     entry_points={'console_scripts': [
         'githubflow_release = githubflow_release.run:main',
+        'githubflow_get_new_version = githubflow_release.new_version:main',
     ]},
 )
 
