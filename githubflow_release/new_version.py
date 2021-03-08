@@ -25,11 +25,11 @@ from githubflow_release.release import new_version
 def main():
     arguments = docopt(__doc__, version='Github Flow Release 1.0.0')
 
-    return new_version(project_path=arguments['--project-path'],
+    print(new_version(project_path=arguments['--project-path'],
                        release_type=arguments['--release-type'],
                        remote_name=arguments['--remote-name'],
                        github_user=arguments['--github-user'],
-                       github_token=arguments['--github-token'])
+                       github_token=arguments['--github-token']))
 
 
 if __name__ == '__main__':
