@@ -11,38 +11,34 @@ A changelog can be created using github PullRequests merged since last release.
 
 ## Invocation
 
-Using python 3 is required (3.6 and 3.7 are working).\
-It is advised to create a dedicated python virtualenv to avoid system-wise pip install.\
-Cloning repository is mandatory (pip package is deprecated).
+For any of the 2 ways documented below, using python 3 is required (3.6 and 3.7 are working).\
+It is also advised to create a dedicated python virtualenv to avoid system-wise pip install.\
+Cloning repository is mandatory (pip package available online is deprecated).
 
-### Installation and run
+### Recommended way
 
-The recommended way.
-
-In the dedicated python 3 virtualenv, inside repository:
-
-```bash
-python setup.py install    # install in venv (dependencies included)
-githubflow_release --help  # invoke
-```
-
-### Simple python command
-
-Useful way for debugging.
+> Installation and run.
 
 In the dedicated python 3 virtualenv, inside repository:
 
 ```bash
-pip install -r requirements.txt          # install dependencies only
-python githubflow_release/run.py --help # invoke
+python setup.py install            # will install commands in venv (dependencies included)
+githubflow_release --help          # invoke "releaser"
+githubflow_get_new_version --help  # invoke "new version number processing"
 ```
 
-Or
+### Debug way
+
+> Simple python command.
+
+In the dedicated python 3 virtualenv, inside repository:
 
 ```bash
-pip install -r requirements.txt          # install dependencies only
-python githubflow_get_new_version/new_version.py --help # invoke
+pip install -r requirements.txt                  # install dependencies only
+python githubflow_release/run.py --help          # invoke "releaser"
+python githubflow_release/new_version.py --help  # invoke "new version number processing"
 ```
+
 ## Script usage
 
 To know all the parameters use the --help option.

@@ -29,8 +29,8 @@ Options:
   --github-token <token>    Github token
   --base-branch <branch>    Base branch  [default: master]
   --debian-changelog        Generate debian_changelog
-  --excluded-pr-tag <tags>  PR will be excluded if labelled with the given tag [default: hotfix not_in_changelog]
-  --hotfix-pr-id <pr-id>    Hotfix PR ID
+  --excluded-pr-tag <tags>  PR will be excluded if labelled with the given tag [default: hotfix not_in_changelog] (multiple values accepted)
+  --hotfix-pr-id <pr-id>    Hotfix PR ID (multiple values accepted)
   --dry-run                 Display changelog without doing the release
   --auto-push               Automatic push release and tags
 """
