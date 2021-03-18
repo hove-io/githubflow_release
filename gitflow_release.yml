@@ -1,0 +1,6 @@
+# configuration of the project release
+# used by itself
+github_repo: CanalTP/git_release
+base_branch: master
+generate_debian_changelog: False
+excluded_pr_tag: [hotfix, not_in_changelog]

@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from setuptools import setup
+
+with open('requirements.txt') as fp:
+    requirements = fp.read()
+
+version = '0.0.3'  # TODO use git tag ;)
+
+setup(
+    name='githubflow_release',
+    version=version,
+    description="github flow release",
+    author="Antoine Desbordes",
+    author_email='antoine.desbordes@gmail.com',
+    url='https://github.com/CanalTP/githubflow_release',
+    packages=[
+        'githubflow_release',
+    ],
+    package_dir={'githubflow_release': 'githubflow_release'},
+    include_package_data=True,
+    install_requires=requirements,
+    license="MIT",
+    zip_safe=False,
+    keywords='cli',
+    classifiers=[
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Natural Language :: English',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.6',
+    ],
+    entry_points={'console_scripts': [
+        'githubflow_release = githubflow_release.run:main',
+        'githubflow_get_new_version = githubflow_release.new_version:main',
+    ]},
+)
+
