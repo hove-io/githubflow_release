@@ -4,4 +4,4 @@ GitPython==2.1.15
 requests==2.24.0
 semver==2.13.0
 smmap==3.0.5
-PyYAML==5.3.1
+PyYAML==5.4.1
