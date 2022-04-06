@@ -14,7 +14,7 @@ setup(
     description="github flow release",
     author="Antoine Desbordes",
     author_email='antoine.desbordes@gmail.com',
-    url='https://github.com/CanalTP/githubflow_release',
+    url='https://github.com/hove-io/githubflow_release',
     packages=[
         'githubflow_release',
     ],

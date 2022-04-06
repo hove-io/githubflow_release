@@ -51,8 +51,8 @@ Example of `gitflow_release.yml`:
   
 ```yml
 # configuration of my project release
-# used by https://github.com/CanalTP/githubflow_release
-github_repo: CanalTP/my_project
+# used by https://github.com/hove-io/githubflow_release
+github_repo: hove-io/my_project
 base_branch: master
 generate_debian_changelog: False
 excluded_pr_tag: [hotfix, not_in_changelog, my_tag]
