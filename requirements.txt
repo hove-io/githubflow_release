@@ -1,6 +1,6 @@
 docopt==0.6.2
 gitdb2==2.0.6
-GitPython==2.1.15
+GitPython==3.1.32
 requests==2.24.0
 semver==2.13.0
 smmap==3.0.5
